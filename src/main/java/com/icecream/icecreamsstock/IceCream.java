@@ -1,8 +1,10 @@
+package com.icecream.icecreamsstock;
+
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
-@Entity // Creates an entity that represents a table
-
+@Entity // This syntax creates an entity that represents a table. This is done by Hibernate/JPA.
+// @Entities are automatically transformed from Java objects into tables and SQL in the database.
 public class IceCream {
 
     // Instance Variables

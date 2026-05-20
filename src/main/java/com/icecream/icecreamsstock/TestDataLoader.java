@@ -1,3 +1,5 @@
+/*
+
 package com.icecream.icecreamsstock;
 
 import org.springframework.boot.CommandLineRunner; // Runs code automatically when Spring Boot starts
@@ -34,4 +36,7 @@ public class TestDataLoader implements CommandLineRunner {
         System.out.println("\nIce cream saved!");
 
     }
+
 }
+
+*/
