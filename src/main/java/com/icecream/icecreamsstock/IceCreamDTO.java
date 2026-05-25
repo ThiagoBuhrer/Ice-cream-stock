@@ -1,12 +1,13 @@
 package com.icecream.icecreamsstock;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+
 
 // DTO (Data Transfer Object) is an intermediate layer between the API and the database.
-// You need an intermediate layer to control and validate data before processing it
-// It is used to avoid exposing the entity directly and to send only the necessary data through the API.
-// Like the IceCream class, this is also considered a Model class in the MVC.
+// You need an intermediate layer to control and validate data before processing it.
+// It's used to avoid exposing the entity directly and to send only the necessary data through the API.
+// Like the IceCream class, IceCreamDTO is also considered a Model class in the MVC.
 
 public class IceCreamDTO {
 
@@ -15,13 +16,13 @@ public class IceCreamDTO {
 
     @NotBlank
     private String flavor;
-    @Positive
+    @PositiveOrZero
     private double stockQuantityKG;
     @NotBlank
     private String madeAt;
 
     // @NotBlank - field cannot be blank
-    // @Positive - field has to be > 0
+    // @PositiveOrZero - field has to be => 0
 
 
     // Getters and Setters
