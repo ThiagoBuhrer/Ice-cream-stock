@@ -13,8 +13,10 @@ public class IceCream {
     private long id; // Primary Key (placed right next to @Id)
     private String flavor;
     private double stockQuantityKG;
+    private int stockBuckets;
     private LocalDate madeAt;
-
+    private static final double KG_PER_BUCKET = 5.0; // Indicates that 01 ice cream bucket weights 5g
+    private static final double KG_PER_CUP = 0.1;
 
     // Empty Constructor Method (required by Hibernate ORM to create objects)
     public IceCream() {
@@ -22,16 +24,16 @@ public class IceCream {
 
 
     // Constructor Method
-    public IceCream(String flavor, double stockQuantityKG, LocalDate madeAt) {
+    public IceCream(String flavor, double stockQuantityKG, int stockBuckets, LocalDate madeAt) {
         this.flavor = flavor;
-        this.stockQuantityKG = stockQuantityKG;
+        this.stockQuantityKG = stockBuckets * KG_PER_BUCKET;
+        this.stockBuckets = stockBuckets;
         this.madeAt = madeAt;
     }
 
 
 
-    // Instance Variables
-
+    // Instance Methods
 
 
     // Access Methods (Getters and Setters)
@@ -46,6 +48,12 @@ public class IceCream {
     }
     public void setStockQuantityKG(double stockQuantityKG) {
         this.stockQuantityKG = stockQuantityKG;
+    }
+    public int getStockBuckets() {
+        return stockBuckets;
+    }
+    public void setStockBuckets(int stockBuckets) {
+        this.stockBuckets = stockBuckets;
     }
     public LocalDate getMadeAt() {
         return madeAt;

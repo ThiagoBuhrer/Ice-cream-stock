@@ -6,10 +6,12 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import org.springframework.data.domain.Sort;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 
 
-// Marks this class as a REST API controller
-@RestController
+
+@CrossOrigin(origins = "*") // Allows requests from any source of a web request (only for recommended for development)
+@RestController // Marks this class as a REST API controller
 public class IceCreamController {
 
 
@@ -67,11 +69,53 @@ public class IceCreamController {
         IceCream iceCream = new IceCream(
                 dto.getFlavor(),
                 dto.getStockQuantityKG(),
+                dto.getStockBuckets(),
                 java.time.LocalDate.parse(dto.getMadeAt())
         );
 
         return repository.save(iceCream);
     }
+
+
+    // POST endpoint
+    // Sells 01 cup of icecream (100g per cup)
+    // ResponseEntity allows returning a fully controlled HTTP response (status + body) instead of only data (because this endpoint includes business logic and validation beyond simple CRUD operations).
+    @PostMapping("/sell")
+    public ResponseEntity<?> sellIceCream(@RequestParam String flavor, @RequestParam int cups) { // @RequestParam extracts query parameters from the URL and passes them into the method as arguments.
+
+        // Find ice cream by flavor (research is not case-sensitive)
+        IceCream iceCream = repository.findByFlavorIgnoreCase(flavor)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "IceCream flavor not found: " + flavor
+                ));
+
+
+        double KG_PER_CUP = 0.1;
+        double totalToSell = cups * KG_PER_CUP;
+
+        // Validate stock
+        if (iceCream.getStockQuantityKG() < totalToSell) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Not enough stock for " + flavor
+            );
+        }
+
+        // Update stock
+        double newStock = iceCream.getStockQuantityKG() - totalToSell;
+        iceCream.setStockQuantityKG(newStock);
+
+        // Recalculate buckets (5kg = 1 bucket)
+        int newBuckets = (int) (newStock / 5.0);
+        iceCream.setStockBuckets(newBuckets);
+
+        // Save update to DB
+        repository.save(iceCream);
+
+        return ResponseEntity.ok(cups + " cups of " + flavor + " sold successfully");
+    }
+
 
 
     // PUT endpoint
@@ -81,15 +125,14 @@ public class IceCreamController {
         // PUT needs two different things at the same time: @PathVariable (identifies which icecream) + @RequestBody (receives the new data).
         // We also add @Valid, so that the constraints we chose in IceCreamDTO (intermediary layer) actually work.
 
-        IceCream existingIceCream = repository.findById(id).orElse(null);
 
-        if (existingIceCream == null) {
-            return null;
-        }
+        IceCream existingIceCream = repository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
 
         // Updates fields
         existingIceCream.setFlavor(dto.getFlavor());
         existingIceCream.setStockQuantityKG(dto.getStockQuantityKG());
+        existingIceCream.setStockBuckets(dto.getStockBuckets());
         existingIceCream.setMadeAt(java.time.LocalDate.parse(dto.getMadeAt()));
 
         return repository.save(existingIceCream);
@@ -108,6 +151,16 @@ public class IceCreamController {
         }
 
         return "IceCream with id " + id + " was not found.";
+    }
+
+
+    // DELETE endpoint
+    // Removes ALL icecreams from the database
+    @DeleteMapping("/icecream/all")
+    public String deleteAllIceCreams() {
+
+        repository.deleteAll();
+        return "All IceCream records were deleted successfully";
     }
 
 
