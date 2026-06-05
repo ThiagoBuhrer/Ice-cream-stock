@@ -29,36 +29,73 @@
 
 <!-- SELL CUP BUTTON -->
 <div class="container mt-3">
-    <button class="btn btn-danger w-100 py-3 fw-bold fs-5" onclick="sellCup()">
+    <button class="btn btn-danger w-100 py-3 fw-bold fs-5"
+            onclick="openSellOffcanvas()">
         🍦 SELL CUP
     </button>
 </div>
 
+<!-- SELL OFFCANVAS -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="sellOffcanvas">
+
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">Sell Ice Cream</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body">
+
+        <form onsubmit="sellFromOffcanvas(event)">
+
+            <div class="mb-3">
+                <label class="form-label">Flavor</label>
+                <input id="sellFlavor" type="text" class="form-control">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Cups</label>
+                <input id="sellCups" type="number" class="form-control">
+            </div>
+
+            <button type="submit" class="btn btn-danger w-100">
+                Sell
+            </button>
+
+        </form>
+
+    </div>
+</div>
+
 <script>
-    function sellCup() {
-        const flavor = prompt("Enter flavour:");
-        const cups = prompt("Enter number of cups:");
+    function openSellOffcanvas() {
+        const offcanvas = new bootstrap.Offcanvas(
+            document.getElementById('sellOffcanvas')
+        );
+        offcanvas.show();
+    }
 
-        if (!flavor || !cups) return;
+    function sellFromOffcanvas(event) {
+        event.preventDefault();
 
-        // Fetch API is a built-in JS function used to make HTTP requests from the browser to a backend API.
-        // It allows the frontend to communicate with the server through endpoints without reloading the page.
+        const flavor = document.getElementById("sellFlavor").value;
+        const cups = document.getElementById("sellCups").value;
+
         fetch(`http://localhost:8080/sell?flavor=${flavor}&cups=${cups}`, {
             method: "POST"
         })
-        .then(response => {
-            if (!response.ok) {
-                return response.text().then(err => { throw new Error(err); });
-            }
-            return response.text();
-        })
-        .then(data => {
-            alert(data);
-            location.reload();
-        })
-        .catch(err => {
-            alert("Error: " + err.message);
-        });
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(err => { throw new Error(err); });
+                }
+                return response.text();
+            })
+            .then(data => {
+                alert(data);
+                location.reload();
+            })
+            .catch(err => {
+                alert("Error: " + err.message);
+            });
     }
 </script>
 
@@ -101,8 +138,11 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4>Gestão de Stock</h4>
 
-        <button class="btn btn-success">+ Adicionar</button>
-    </div>
+        <button class="btn btn-success"
+                onclick="openAddOffcanvas()">
+            + Adicionar
+        </button>
+</div>
 
     <div class="table-responsive">
         <table class="table table-striped table-hover">
@@ -146,6 +186,111 @@
         </table>
     </div>
 </div>
+
+<!-- TABLE ADMIN OFFCANVAS -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="addOffcanvas">
+
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">Add Ice Cream</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body">
+
+        <form onsubmit="addIceCream(event)">
+
+            <div class="mb-3">
+                <label class="form-label">Flavor</label>
+                <input id="addFlavor" type="text" class="form-control">
+            </div>
+
+            <!-- BUCKETS -->
+            <div class="mb-3">
+                <label class="form-label">Buckets</label>
+                <input id="addBuckets"
+                       type="number"
+                       class="form-control"
+                       oninput="updateStockLive()">
+            </div>
+
+            <!-- LIVE KG DISPLAY -->
+            <div class="mb-3">
+                <small class="text-muted">
+                    Stock (KG): <span id="calculatedStock">0</span>
+                </small>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Made At</label>
+                <input id="addDate" type="date" class="form-control">
+            </div>
+
+            <button class="btn btn-success w-100" type="submit">
+                Create
+            </button>
+
+        </form>
+
+    </div>
+</div>
+
+<!-- OPEN TABLE ADMIN OFFCANVAS + LOGIC -->
+<script>
+
+    // OPEN BOOTSTRAP OFFCANVAS FOR "ADD NEW ICE CREAM" FORM
+    function openAddOffcanvas() {
+        const el = document.getElementById("addOffcanvas");
+        const offcanvas = new bootstrap.Offcanvas(el);
+        offcanvas.show();
+    }
+
+    const KG_PER_BUCKET = 5;
+
+    // CALCULATE STOCK (KG) BASED ON BUCKET INPUT LIVE
+    function updateStockLive() {
+        const buckets = parseInt(document.getElementById("addBuckets").value) || 0;
+        const kg = buckets * KG_PER_BUCKET;
+
+        document.getElementById("calculatedStock").innerText = kg;
+    }
+
+    // SEND NEW ICE CREAM DATA TO BACKEND API (POST REQUEST) 
+    function addIceCream(event) {
+        event.preventDefault();
+
+        const buckets = parseInt(document.getElementById("addBuckets").value) || 0;
+        const kg = buckets * 5;
+
+        const iceCream = {
+            flavor: document.getElementById("addFlavor").value,
+            stockBuckets: buckets,
+            stockQuantityKG: kg,
+            madeAt: document.getElementById("addDate").value
+        };
+
+        fetch("http://localhost:8080/icecream", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(iceCream)
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(err => { throw new Error(err); });
+            }
+            return response.json();
+        })
+        .then(() => {
+            alert("Ice Cream created successfully!");
+            location.reload();
+        })
+        .catch(err => {
+            alert("Error: " + err.message);
+        });
+    }
+
+</script>
 
 <!-- FOOTER -->
 <footer class="bg-dark text-white text-center py-4 mt-5">
