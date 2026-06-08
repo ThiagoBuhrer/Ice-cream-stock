@@ -10,7 +10,7 @@ public class IceCream {
     // Instance Variables
     @Id // Indicates the Primary Key
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Database generates the ID automatically
-    private long id; // Primary Key (placed right next to @Id)
+    private Long id; // Primary Key (placed right next to @Id)
     private String flavor;
     private double stockQuantityKG;
     private int stockBuckets;
@@ -37,6 +37,9 @@ public class IceCream {
 
 
     // Access Methods (Getters and Setters)
+    public Long getId() {
+        return id;
+    }
     public String getFlavor() {
         return flavor;
     }

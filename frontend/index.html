@@ -91,7 +91,7 @@
             })
             .then(data => {
                 alert(data);
-                location.reload();
+                refreshUI();
             })
             .catch(err => {
                 alert("Error: " + err.message);
@@ -99,38 +99,106 @@
     }
 </script>
 
-<!-- CARDS (STATIC FRONT ONLY) -->
+<!-- CARDS -->
 <div class="container mt-4">
-    <div class="row g-3">
 
-        <div class="col-12 col-md-4 text-center">
-            <div class="card shadow-sm p-3">
-                <img src="assets/chocolate.png" class="img-fluid mb-2">
-                <h6>Chocolate</h6>
-            </div>
-        </div>
-
-        <div class="col-12 col-md-4 text-center">
-            <div class="card shadow-sm p-3">
-                <img src="assets/morango.png" class="img-fluid mb-2">
-                <h6>Morango</h6>
-            </div>
-        </div>
-
-        <div class="col-12 col-md-4 text-center">
-            <div class="card shadow-sm p-3">
-                <img src="assets/baunilha.png" class="img-fluid mb-2">
-                <h6>Baunilha</h6>
-            </div>
-        </div>
-
+    <div class="row g-3" id="cardsContainer">
     </div>
 
     <!-- PAGINATION VISUAL ONLY -->
     <div class="text-center mt-4">
         <button class="btn btn-dark">↓ Carregar mais</button>
     </div>
+
 </div>
+
+<!-- CARDS + TABLE LOADING AND RENDERING SCRIPT -->
+<script>
+
+    // API base URL used to fetch all ice cream records from the backend
+    const API_URL = "http://localhost:8080/icecream";
+
+    // Executes when the DOM is fully loaded to ensure all HTML elements exist
+    document.addEventListener("DOMContentLoaded", () => {
+        loadCards();
+        loadTable();
+    });
+
+    // Fetches ice cream data from backend API and renders items as UI cards
+    function loadCards() {
+        fetch(API_URL)
+            .then(response => response.json())
+            .then(data => {
+
+                const cardsContainer = document.getElementById("cardsContainer");
+
+                // Clears previous content before rendering updated data
+                cardsContainer.innerHTML = "";
+
+                // Iterates over each ice cream object returned by the API
+                data.forEach(iceCream => {
+
+                    // Dynamically creates a Bootstrap card for each item
+                    cardsContainer.innerHTML += `
+                        <div class="col-12 col-md-4 text-center">
+                            <div class="card shadow-sm p-3">
+                                <h5>${iceCream.flavor}</h5>
+                                <p>${iceCream.stockQuantityKG} KG</p>
+                                <p>${iceCream.stockBuckets} Buckets</p>
+                            </div>
+                        </div>
+                    `;
+
+                });
+
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+
+    // Fetches ice cream data from the backend API and renders it into an HTML table
+    function loadTable() {
+    fetch(API_URL)
+        .then(response => response.json())
+        .then(data => {
+
+            const tableBody = document.getElementById("tableBody");
+
+            // Clears existing table content before inserting updated rows
+            tableBody.innerHTML = "";
+
+            // Iterates over each ice cream object returned by the API
+            data.forEach(iceCream => {
+
+                // Dynamically creates a table row for each ice cream entry
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${iceCream.id ?? "-"}</td>
+                        <td>${iceCream.flavor}</td>
+                        <td>${iceCream.stockQuantityKG}</td>
+                        <td>${iceCream.stockBuckets}</td>
+                        <td>
+
+                            <button class="btn btn-warning btn-sm">Edit</button>
+
+                            <button class="btn btn-danger btn-sm"
+                                onclick="deleteIceCream(${iceCream.id})">Delete
+                            </button>
+
+                        </td>
+                    </tr>
+                `;
+
+            });
+
+        })
+        .catch(error => {
+            console.error("Error loading table:", error);
+        });
+}
+
+</script>
 
 <!-- TABLE ADMIN -->
 <div class="container mt-5">
@@ -150,37 +218,14 @@
             <thead class="table-dark">
                 <tr>
                     <th>ID</th>
-                    <th>Sabor</th>
+                    <th>Flavour</th>
                     <th>Stock (KG)</th>
                     <th>Buckets</th>
-                    <th>Ações</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
 
-            <tbody>
-
-                <tr>
-                    <td>1</td>
-                    <td>Chocolate</td>
-                    <td>100</td>
-                    <td>20</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm">Editar</button>
-                        <button class="btn btn-danger btn-sm">Delete</button>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>2</td>
-                    <td>Morango</td>
-                    <td>75</td>
-                    <td>15</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm">Editar</button>
-                        <button class="btn btn-danger btn-sm">Delete</button>
-                    </td>
-                </tr>
-
+            <tbody id="tableBody">
             </tbody>
 
         </table>
@@ -237,7 +282,7 @@
 <!-- OPEN TABLE ADMIN OFFCANVAS + LOGIC -->
 <script>
 
-    // OPEN BOOTSTRAP OFFCANVAS FOR "ADD NEW ICE CREAM" FORM
+    // Function opens Bootstrap Offcanvas for "Add New Ice Cream" Form
     function openAddOffcanvas() {
         const el = document.getElementById("addOffcanvas");
         const offcanvas = new bootstrap.Offcanvas(el);
@@ -246,7 +291,7 @@
 
     const KG_PER_BUCKET = 5;
 
-    // CALCULATE STOCK (KG) BASED ON BUCKET INPUT LIVE
+    // Functions calculates Stock (KG) based on bucket input live
     function updateStockLive() {
         const buckets = parseInt(document.getElementById("addBuckets").value) || 0;
         const kg = buckets * KG_PER_BUCKET;
@@ -254,7 +299,7 @@
         document.getElementById("calculatedStock").innerText = kg;
     }
 
-    // SEND NEW ICE CREAM DATA TO BACKEND API (POST REQUEST) 
+    // Function sends new ice cream data to backend API (POST Request)
     function addIceCream(event) {
         event.preventDefault();
 
@@ -283,12 +328,39 @@
         })
         .then(() => {
             alert("Ice Cream created successfully!");
-            location.reload();
+            refreshUI();
         })
         .catch(err => {
             alert("Error: " + err.message);
         });
     }
+
+    // Function sends DELETE request to the backend to remove an ice cream by its ID
+    function deleteIceCream(id) {
+    if (!confirm("Are you sure you want to delete this ice cream?")) return;
+
+    fetch(`http://localhost:8080/icecream/${id}`, {
+        method: "DELETE"
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(err => { throw new Error(err); });
+        }
+        return response.text();
+    })
+    .then(() => {
+        refreshUI();
+    })
+    .catch(err => {
+        alert("Error: " + err.message);
+    });
+    }
+
+    // Function refreshes the user interface by reloading both the card view and the table view from the backend
+    function refreshUI() {
+    loadCards();
+    loadTable();
+}
 
 </script>
 
