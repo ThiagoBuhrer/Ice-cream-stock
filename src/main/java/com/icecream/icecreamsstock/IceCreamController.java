@@ -9,8 +9,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 
 
-
-@CrossOrigin(origins = "*") // Allows requests from any source of a web request (only for recommended for development)
 @RestController // Marks this class as a REST API controller
 public class IceCreamController {
 

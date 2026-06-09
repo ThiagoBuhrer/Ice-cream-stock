@@ -80,7 +80,7 @@
         const flavor = document.getElementById("sellFlavor").value;
         const cups = document.getElementById("sellCups").value;
 
-        fetch(`http://localhost:8080/sell?flavor=${flavor}&cups=${cups}`, {
+        fetch(`/sell?flavor=${flavor}&cups=${cups}`, {
             method: "POST"
         })
             .then(response => {
@@ -116,7 +116,7 @@
 <script>
 
     // API base URL used to fetch all ice cream records from the backend
-    const API_URL = "http://localhost:8080/icecream";
+    const API_URL = "/icecream";
 
     // Executes when the DOM is fully loaded to ensure all HTML elements exist
     document.addEventListener("DOMContentLoaded", () => {
@@ -180,7 +180,11 @@
                         <td>${iceCream.stockBuckets}</td>
                         <td>
 
-                            <button class="btn btn-warning btn-sm">Edit</button>
+                            <button class="btn btn-warning btn-sm"
+                                onclick="startEditIceCream(${iceCream.id}, '${iceCream.flavor}', 
+                                ${iceCream.stockBuckets}, '${iceCream.madeAt}')">
+                                Editar
+                            </button>
 
                             <button class="btn btn-danger btn-sm"
                                 onclick="deleteIceCream(${iceCream.id})">Delete
@@ -242,7 +246,7 @@
 
     <div class="offcanvas-body">
 
-        <form onsubmit="addIceCream(event)">
+        <form onsubmit="saveIceCream(event)">
 
             <div class="mb-3">
                 <label class="form-label">Flavor</label>
@@ -282,14 +286,24 @@
 <!-- OPEN TABLE ADMIN OFFCANVAS + LOGIC -->
 <script>
 
+    // Stores the ID of the ice cream currently being edited
+    let editingId = null;
+    // Stores the ID of the ice cream currently being deleted
+    let deleteTargetId = null;
+    // Defines how many kilograms are contained in one ice cream bucket
+    const KG_PER_BUCKET = 5;
+
+
     // Function opens Bootstrap Offcanvas for "Add New Ice Cream" Form
     function openAddOffcanvas() {
+        editingId = null;
+        setCreateModeUI();
+        clearForm();
+
         const el = document.getElementById("addOffcanvas");
         const offcanvas = new bootstrap.Offcanvas(el);
         offcanvas.show();
     }
-
-    const KG_PER_BUCKET = 5;
 
     // Functions calculates Stock (KG) based on bucket input live
     function updateStockLive() {
@@ -299,12 +313,12 @@
         document.getElementById("calculatedStock").innerText = kg;
     }
 
-    // Function sends new ice cream data to backend API (POST Request)
-    function addIceCream(event) {
+   // Function sends new ice cream data to backend API (POST/PUT)
+    function saveIceCream(event) {
         event.preventDefault();
 
         const buckets = parseInt(document.getElementById("addBuckets").value) || 0;
-        const kg = buckets * 5;
+        const kg = buckets * KG_PER_BUCKET;
 
         const iceCream = {
             flavor: document.getElementById("addFlavor").value,
@@ -313,56 +327,163 @@
             madeAt: document.getElementById("addDate").value
         };
 
-        fetch("http://localhost:8080/icecream", {
+        // EDIT MODE (PUT)
+        if (editingId !== null) {
+            fetch(`/icecream/${editingId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(iceCream)
+            })
+            .then(r => {
+                if (!r.ok) return r.text().then(e => { throw new Error(e); });
+                return r.json();
+            })
+            .then(() => {
+                editingId = null;
+
+                setCreateModeUI();
+                clearForm();
+                refreshUI();
+            })
+            .catch(err => alert("Error: " + err.message));
+
+            return;
+        }
+
+        // CREATE MODE (POST)
+        fetch("/icecream", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify(iceCream)
         })
-        .then(response => {
-            if (!response.ok) {
-                return response.text().then(err => { throw new Error(err); });
-            }
-            return response.json();
+        .then(r => {
+            if (!r.ok) return r.text().then(e => { throw new Error(e); });
+            return r.json();
         })
         .then(() => {
-            alert("Ice Cream created successfully!");
+            clearForm();
             refreshUI();
         })
-        .catch(err => {
-            alert("Error: " + err.message);
-        });
+        .catch(err => alert("Error: " + err.message));
+    }
+
+
+    // Resets form
+    function clearForm() {
+        document.getElementById("addFlavor").value = "";
+        document.getElementById("addBuckets").value = "";
+        document.getElementById("addDate").value = "";
+        document.getElementById("calculatedStock").innerText = "0";
+    }
+
+    // Resets the UI to "create mode" by changing the main action button text back to "Create"
+    function setCreateModeUI() {
+    document.querySelector("#addOffcanvas .btn-success").innerText = "Create";
+    }
+    
+    // Changes the UI to "edit mode" by updating the main action button text to "Update"
+    function setEditModeUI() {
+        document.querySelector("#addOffcanvas .btn-success").innerText = "Update";
     }
 
     // Function sends DELETE request to the backend to remove an ice cream by its ID
     function deleteIceCream(id) {
-    if (!confirm("Are you sure you want to delete this ice cream?")) return;
+        deleteTargetId = id;
 
-    fetch(`http://localhost:8080/icecream/${id}`, {
-        method: "DELETE"
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.text().then(err => { throw new Error(err); });
-        }
-        return response.text();
-    })
-    .then(() => {
-        refreshUI();
-    })
-    .catch(err => {
-        alert("Error: " + err.message);
-    });
+        const modal = new bootstrap.Modal(document.getElementById("deleteModal"));
+        modal.show();
     }
+
+    // Deletes the selected ice cream
+    document.addEventListener("DOMContentLoaded", function () { 
+
+    // Waits for DOM to load, then handles delete confirmation by sending a DELETE request to the backend.
+    // On success, it closes the modal, resets state, and refreshes the UI.
+
+        document.getElementById("confirmDeleteBtn").addEventListener("click", function () {
+
+            if (deleteTargetId === null) return;
+
+            fetch(`/icecream/${deleteTargetId}`, {
+                method: "DELETE"
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(err => { throw new Error(err); });
+                }
+                return response.text();
+            })
+            .then(() => {
+                deleteTargetId = null;
+
+                const modalEl = document.getElementById("deleteModal");
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                modal.hide();
+
+                refreshUI();
+            })
+            .catch(err => alert("Error: " + err.message));
+
+        });
+    });
 
     // Function refreshes the user interface by reloading both the card view and the table view from the backend
     function refreshUI() {
     loadCards();
     loadTable();
-}
+    }
+
+    // Opens the edit form (offcanvas) and pre-fills it with the selected ice cream data
+    function startEditIceCream(id, flavor, buckets, madeAt) {
+        editingId = id;
+
+        document.getElementById("addFlavor").value = flavor;
+        document.getElementById("addBuckets").value = buckets;
+        document.getElementById("addDate").value = madeAt;
+
+        updateStockLive();
+
+        setEditModeUI(); // <-- IMPORTANTE
+
+        const offcanvas = new bootstrap.Offcanvas(
+            document.getElementById("addOffcanvas")
+        );
+        offcanvas.show();
+    }
 
 </script>
+
+<!-- DELETE CONFIRM MODAL (POP-UP) -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Delete</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        Are you sure you want to delete this ice cream?
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+
+        <button class="btn btn-danger" id="confirmDeleteBtn">
+          Delete
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 <!-- FOOTER -->
 <footer class="bg-dark text-white text-center py-4 mt-5">
