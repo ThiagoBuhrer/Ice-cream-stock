@@ -7,7 +7,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class IceCreamStockApplication {
 
     public static void main(String[] args) {
+
         SpringApplication.run(IceCreamStockApplication.class, args);
+
     }
 
 }

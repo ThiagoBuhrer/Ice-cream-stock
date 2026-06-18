@@ -155,10 +155,18 @@ public class IceCreamController {
     // DELETE endpoint
     // Removes ALL icecreams from the database
     @DeleteMapping("/icecream/all")
-    public String deleteAllIceCreams() {
+    public ResponseEntity<String> deleteAllIceCreams() {
+
+        if (repository.count() == 0) {
+            return ResponseEntity.badRequest()
+                    .body("There are no ice creams listed. Try again later.");
+        }
 
         repository.deleteAll();
-        return "All IceCream records were deleted successfully";
+
+        return ResponseEntity.ok(
+                "All ice cream records were deleted successfully!"
+        );
     }
 
 

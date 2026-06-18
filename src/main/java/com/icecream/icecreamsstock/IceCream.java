@@ -22,7 +22,6 @@ public class IceCream {
     public IceCream() {
     }
 
-
     // Constructor Method
     public IceCream(String flavor, double stockQuantityKG, int stockBuckets, LocalDate madeAt) {
         this.flavor = flavor;
@@ -31,12 +30,7 @@ public class IceCream {
         this.madeAt = madeAt;
     }
 
-
-
-    // Instance Methods
-
-
-    // Access Methods (Getters and Setters)
+    // Access Methods
     public Long getId() {
         return id;
     }

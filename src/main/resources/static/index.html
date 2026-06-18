@@ -16,14 +16,41 @@
 
 <!-- NAV -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
-    <a class="navbar-brand fw-bold" href="#">🍦 Ice Cream Stock</a>
+
+    <a class="navbar-brand fw-bold" href="#">
+        🍦 Ice Cream Stock
+    </a>
+
+    <div class="ms-auto dropdown">
+
+        <button class="btn btn-dark dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown">
+            <span id="loggedUser">
+                User
+            </span>
+        </button>
+
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+                <button class="dropdown-item"
+                        onclick="logout()">
+                    Logout
+                </button>
+            </li>
+        </ul>
+
+    </div>
+
 </nav>
 
 <!-- HERO -->
 <div class="container mt-4">
     <div class="p-4 bg-light rounded">
-        <h2 class="fw-bold">Dashboard de Stock 🍦</h2>
-        <p class="mb-0">Gestão simples de gelados (interface)</p>
+        <h2 class="fw-bold">Stock Dashboard🍦</h2>
+        <p class="mb-0">
+            Welcome, <span id="welcomeUser"></span>
+        </p>
     </div>
 </div>
 
@@ -107,7 +134,7 @@
 
     <!-- PAGINATION VISUAL ONLY -->
     <div class="text-center mt-4">
-        <button class="btn btn-dark">↓ Carregar mais</button>
+        <button class="btn btn-dark">↓ Show more</button>
     </div>
 
 </div>
@@ -183,7 +210,7 @@
                             <button class="btn btn-warning btn-sm"
                                 onclick="startEditIceCream(${iceCream.id}, '${iceCream.flavor}', 
                                 ${iceCream.stockBuckets}, '${iceCream.madeAt}')">
-                                Editar
+                                Edit
                             </button>
 
                             <button class="btn btn-danger btn-sm"
@@ -210,10 +237,20 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4>Gestão de Stock</h4>
 
-        <button class="btn btn-success"
-                onclick="openAddOffcanvas()">
-            + Adicionar
-        </button>
+        <div class="d-flex gap-2">
+
+            <button class="btn btn-success"
+                    onclick="openAddOffcanvas()">
+                + Add Ice Cream
+            </button>
+
+            <button class="btn btn-danger"
+                    onclick="openDeleteAllModal()">
+                Delete All
+            </button>
+
+        </div>
+
 </div>
 
     <div class="table-responsive">
@@ -294,7 +331,7 @@
     const KG_PER_BUCKET = 5;
 
 
-    // Function opens Bootstrap Offcanvas for "Add New Ice Cream" Form
+    // Opens Bootstrap Offcanvas for "Add New Ice Cream" Form
     function openAddOffcanvas() {
         editingId = null;
         setCreateModeUI();
@@ -305,7 +342,7 @@
         offcanvas.show();
     }
 
-    // Functions calculates Stock (KG) based on bucket input live
+    // Calculates Stock (KG) based on bucket input live
     function updateStockLive() {
         const buckets = parseInt(document.getElementById("addBuckets").value) || 0;
         const kg = buckets * KG_PER_BUCKET;
@@ -313,7 +350,7 @@
         document.getElementById("calculatedStock").innerText = kg;
     }
 
-   // Function sends new ice cream data to backend API (POST/PUT)
+   // Sends new ice cream data to backend API (POST/PUT)
     function saveIceCream(event) {
         event.preventDefault();
 
@@ -371,7 +408,6 @@
         .catch(err => alert("Error: " + err.message));
     }
 
-
     // Resets form
     function clearForm() {
         document.getElementById("addFlavor").value = "";
@@ -390,7 +426,7 @@
         document.querySelector("#addOffcanvas .btn-success").innerText = "Update";
     }
 
-    // Function sends DELETE request to the backend to remove an ice cream by its ID
+    // Sends DELETE request to the backend to remove an ice cream by its ID
     function deleteIceCream(id) {
         deleteTargetId = id;
 
@@ -431,7 +467,7 @@
         });
     });
 
-    // Function refreshes the user interface by reloading both the card view and the table view from the backend
+    // Refreshes the user interface by reloading both the card view and the table view from the backend
     function refreshUI() {
     loadCards();
     loadTable();
@@ -455,9 +491,111 @@
         offcanvas.show();
     }
 
+    // Deletes all ice cream records from the database
+    function deleteAllIceCreams() {
+
+        const confirmModal = new bootstrap.Modal(
+            document.getElementById("deleteAllModal")
+        );
+
+        confirmModal.show();
+    }
+
+    // Opens confirmation modal before deleting all ice creams
+    function openDeleteAllModal() {
+
+        const modal = new bootstrap.Modal(
+            document.getElementById("deleteAllModal")
+        );
+
+        modal.show();
+    }
+
+    // Confirms deleting all ice cream records
+    document.addEventListener("DOMContentLoaded", function () {
+
+        document.getElementById("confirmDeleteAllBtn")
+        .addEventListener("click", function () {
+
+            fetch("/icecream/all", {
+                method: "DELETE"
+            })
+            .then(response => {
+
+                return response.text().then(message => {
+
+                    if (!response.ok) {
+                        throw new Error(message);
+                    }
+
+                    return message;
+
+                });
+
+            })
+            .then(message => {
+
+                const modal = bootstrap.Modal.getInstance(
+                    document.getElementById("deleteAllModal")
+                );
+
+                modal.hide();
+
+
+                document.getElementById("successModalMessage").innerText = message;
+
+
+                const successModal = new bootstrap.Modal(
+                    document.getElementById("successModal")
+                );
+
+                successModal.show();
+
+
+                refreshUI();
+
+            })
+            .catch(error => {
+
+                document.getElementById("successModalMessage").innerText =
+                    error.message;
+
+
+                const successModal = new bootstrap.Modal(
+                    document.getElementById("successModal")
+                );
+
+                successModal.show();
+
+            });
+
+        });
+        
+    });
+
+    // Loads logged user information from browser storage
+    document.addEventListener("DOMContentLoaded", () => {
+        const username = localStorage.getItem("username");
+
+        if (username) {
+            document.getElementById("loggedUser").innerText = username;
+            document.getElementById("welcomeUser").innerText = username;
+        }
+    });
+
+    // Removes user data and returns to login page
+    function logout() {
+        localStorage.removeItem("username");
+        localStorage.removeItem("role");
+        window.location.href = "/login.html";
+    }
+
 </script>
 
-<!-- DELETE CONFIRM MODAL (POP-UP) -->
+
+<!-- POP-UPS (BOOTSTRAP MODAL)-->
+
+<!-- CONFIRM DELETE MODAL -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -483,6 +621,61 @@
 
     </div>
   </div>
+</div>
+
+<!-- DELETE ALL CONFIRM MODAL -->
+<div class="modal fade" id="deleteAllModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete All</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                Are you sure you want to delete all ice cream records?
+            </div>
+
+            <div class="modal-footer">
+
+                <button class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Cancel
+                </button>
+
+                <button class="btn btn-danger"
+                        id="confirmDeleteAllBtn">
+                    Delete All
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- DELETE ALL SUCCESS MESSAGE MODAL -->
+<div class="modal fade" id="successModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Success</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="successModalMessage">
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-success" data-bs-dismiss="modal">
+                    OK
+                </button>
+            </div>
+
+        </div>
+    </div>
 </div>
 
 <!-- FOOTER -->
