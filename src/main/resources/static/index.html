@@ -199,6 +199,7 @@
             data.forEach(iceCream => {
 
                 // Dynamically creates a table row for each ice cream entry
+                // Delete button only workds if you are logged as Manager, not as Staff. Edit button works for both roles.
                 tableBody.innerHTML += `
                     <tr>
                         <td>${iceCream.id ?? "-"}</td>
@@ -213,9 +214,12 @@
                                 Edit
                             </button>
 
-                            <button class="btn btn-danger btn-sm"
-                                onclick="deleteIceCream(${iceCream.id})">Delete
+                            ${localStorage.getItem("role") === "MANAGER" ? `
+                            <button class="btn btn-danger btn-sm deleteButton"
+                                onclick="deleteIceCream(${iceCream.id})">
+                                Delete
                             </button>
+                            ` : ""}
 
                         </td>
                     </tr>
@@ -226,25 +230,28 @@
         })
         .catch(error => {
             console.error("Error loading table:", error);
-        });
+    });
+
 }
 
 </script>
 
 <!-- TABLE ADMIN -->
-<div class="container mt-5">
+<div class="container mt-5" id="adminSection">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4>Gestão de Stock</h4>
 
         <div class="d-flex gap-2">
 
-            <button class="btn btn-success"
+            <button id="addButton"
+                    class="btn btn-success"
                     onclick="openAddOffcanvas()">
                 + Add Ice Cream
             </button>
 
-            <button class="btn btn-danger"
+            <button id="deleteAllButton"
+                    class="btn btn-danger"
                     onclick="openDeleteAllModal()">
                 Delete All
             </button>
@@ -573,15 +580,31 @@
         
     });
 
-    // Loads logged user information from browser storage
-    document.addEventListener("DOMContentLoaded", () => {
+    // Loads logged user information
+    window.onload = function () {
+
         const username = localStorage.getItem("username");
+        const role = localStorage.getItem("role");
 
         if (username) {
             document.getElementById("loggedUser").innerText = username;
             document.getElementById("welcomeUser").innerText = username;
         }
-    });
+
+        if (role === "STAFF") {
+
+            document.getElementById("addButton").style.display = "none";
+            document.getElementById("deleteAllButton").style.display = "none";
+
+            document.querySelectorAll(".deleteButton")
+                .forEach(button => {
+
+                    button.style.display = "none";
+
+                });
+        }
+
+    };
 
     // Removes user data and returns to login page
     function logout() {
