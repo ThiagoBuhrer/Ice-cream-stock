@@ -76,12 +76,14 @@
 
             <div class="mb-3">
                 <label class="form-label">Flavor</label>
-                <input id="sellFlavor" type="text" class="form-control">
+                <select id="sellFlavor" class="form-select" required>
+                    <option value="">Select a flavor...</option>
+                </select>
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Cups</label>
-                <input id="sellCups" type="number" class="form-control">
+                <input id="sellCups" type="number" class="form-control" min="1" required>
             </div>
 
             <button type="submit" class="btn btn-danger w-100">
@@ -94,36 +96,89 @@
 </div>
 
 <script>
-    function openSellOffcanvas() {
-        const offcanvas = new bootstrap.Offcanvas(
-            document.getElementById('sellOffcanvas')
-        );
-        offcanvas.show();
-    }
 
-    function sellFromOffcanvas(event) {
-        event.preventDefault();
+function openSellOffcanvas() {
+    loadFlavorsForSell();
+    const offcanvas = new bootstrap.Offcanvas(
+        document.getElementById('sellOffcanvas')
+    );
+    offcanvas.show();
+}
 
-        const flavor = document.getElementById("sellFlavor").value;
-        const cups = document.getElementById("sellCups").value;
-
-        fetch(`/sell?flavor=${flavor}&cups=${cups}`, {
-            method: "POST"
-        })
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(err => { throw new Error(err); });
+function loadFlavorsForSell() {
+    fetch("/icecream")
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById("sellFlavor");
+            select.innerHTML = '<option value="">Select a flavor...</option>';
+            
+            data.forEach(iceCream => {
+                const option = document.createElement("option");
+                option.value = iceCream.flavor;
+                option.textContent = iceCream.flavor + " (" + iceCream.stockQuantityKG + " KG)";
+                
+                if (iceCream.stockQuantityKG <= 0) {
+                    option.disabled = true;
+                    option.style.color = "gray";
                 }
-                return response.text();
-            })
-            .then(data => {
-                alert(data);
-                refreshUI();
-            })
-            .catch(err => {
-                alert("Error: " + err.message);
+                
+                select.appendChild(option);
             });
+        })
+        .catch(error => {
+            console.error("Error loading flavors:", error);
+        });
+}
+
+function sellFromOffcanvas(event) {
+    event.preventDefault();
+
+    const flavor = document.getElementById("sellFlavor").value;
+    const cups = document.getElementById("sellCups").value;
+
+    if (!flavor) {
+        showSellError("Please select a flavor.");
+        return;
     }
+
+    if (!cups || cups <= 0) {
+        showSellError("Please enter a valid number of cups.");
+        return;
+    }
+
+    fetch(`/sell?flavor=${flavor}&cups=${cups}`, {
+        method: "POST"
+    })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(err => { throw new Error(err); });
+            }
+            return response.text();
+        })
+        .then(data => {
+            showSellSuccess(data);
+            refreshUI();
+            
+            const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('sellOffcanvas'));
+            if (offcanvas) {
+                offcanvas.hide();
+            }
+        })
+        .catch(err => {
+            showSellError("Error: " + err.message);
+        });
+}
+
+function showSellError(message) {
+    document.getElementById("sellErrorMessage").textContent = message;
+    new bootstrap.Modal(document.getElementById("sellErrorModal")).show();
+}
+
+function showSellSuccess(message) {
+    document.getElementById("sellSuccessMessage").textContent = message;
+    new bootstrap.Modal(document.getElementById("sellSuccessModal")).show();
+}
+
 </script>
 
 <!-- CARDS -->
@@ -134,7 +189,7 @@
 
     <!-- PAGINATION VISUAL ONLY -->
     <div class="text-center mt-4">
-        <button class="btn btn-dark">↓ Show more</button>
+        <button class="btn btn-dark" onclick="showMore()">↓ Show more</button>
     </div>
 
 </div>
@@ -156,32 +211,55 @@
         fetch(API_URL)
             .then(response => response.json())
             .then(data => {
-
-                const cardsContainer = document.getElementById("cardsContainer");
-
-                // Clears previous content before rendering updated data
-                cardsContainer.innerHTML = "";
-
-                // Iterates over each ice cream object returned by the API
-                data.forEach(iceCream => {
-
-                    // Dynamically creates a Bootstrap card for each item
-                    cardsContainer.innerHTML += `
-                        <div class="col-12 col-md-4 text-center">
-                            <div class="card shadow-sm p-3">
-                                <h5>${iceCream.flavor}</h5>
-                                <p>${iceCream.stockQuantityKG} KG</p>
-                                <p>${iceCream.stockBuckets} Buckets</p>
-                            </div>
-                        </div>
-                    `;
-
-                });
-
+                allIceCreams = data;
+                currentPage = 0;
+                renderCards();
+                updateShowMoreButton();
             })
             .catch(error => {
                 console.error(error);
             });
+    }
+
+    function renderCards() {
+        const cardsContainer = document.getElementById("cardsContainer");
+        cardsContainer.innerHTML = "";
+
+        const start = 0;
+        const end = Math.min((currentPage + 1) * ITEMS_PER_PAGE, allIceCreams.length);
+        const pageItems = allIceCreams.slice(start, end);
+
+        pageItems.forEach(iceCream => {
+            cardsContainer.innerHTML += `
+                <div class="col-12 col-md-4 text-center">
+                    <div class="card shadow-sm p-3">
+                        <h5>${iceCream.flavor}</h5>
+                        <p>${iceCream.stockQuantityKG} KG</p>
+                        <p>${iceCream.stockBuckets} Buckets</p>
+                    </div>
+                </div>
+            `;
+        });
+
+        updateShowMoreButton();
+    }
+
+    function updateShowMoreButton() {
+        const button = document.querySelector(".btn-dark");
+        const totalItems = allIceCreams.length;
+        const displayedItems = Math.min((currentPage + 1) * ITEMS_PER_PAGE, totalItems);
+
+        if (displayedItems >= totalItems) {
+            button.disabled = true;
+            button.style.opacity = "0.5";
+            button.style.cursor = "not-allowed";
+            button.textContent = "No more items";
+        } else {
+            button.disabled = false;
+            button.style.opacity = "1";
+            button.style.cursor = "pointer";
+            button.textContent = "↓ Show more";
+        }
     }
 
     // Fetches ice cream data from the backend API and renders it into an HTML table
@@ -240,7 +318,7 @@
 <div class="container mt-5" id="adminSection">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4>Gestão de Stock</h4>
+        <h4>Stock Management</h4>
 
         <div class="d-flex gap-2">
 
@@ -291,6 +369,7 @@
     <div class="offcanvas-body">
 
         <form onsubmit="saveIceCream(event)">
+            <div id="addError" class="alert alert-danger" style="display: none;"></div>
 
             <div class="mb-3">
                 <label class="form-label">Flavor</label>
@@ -336,6 +415,12 @@
     let deleteTargetId = null;
     // Defines how many kilograms are contained in one ice cream bucket
     const KG_PER_BUCKET = 5;
+    // Stores all ice cream data fetched from the API for pagination purposes
+    let allIceCreams = [];
+    // Controls the current page index for the "Show More" pagination feature
+    let currentPage = 0;
+    // Defines the maximum number of ice cream cards displayed per page
+    const ITEMS_PER_PAGE = 12;
 
 
     // Opens Bootstrap Offcanvas for "Add New Ice Cream" Form
@@ -361,14 +446,25 @@
     function saveIceCream(event) {
         event.preventDefault();
 
+        const flavor = document.getElementById("addFlavor").value.trim();
         const buckets = parseInt(document.getElementById("addBuckets").value) || 0;
         const kg = buckets * KG_PER_BUCKET;
+        const madeAt = document.getElementById("addDate").value;
+
+        // Validates if user did not forget to enter a date o creation
+        if (!madeAt) {
+            showDateError();
+            return;
+        }
+
+        document.getElementById("addError").style.display = "none";
+        document.getElementById("addError").textContent = "";
 
         const iceCream = {
-            flavor: document.getElementById("addFlavor").value,
+            flavor: flavor,
             stockBuckets: buckets,
             stockQuantityKG: kg,
-            madeAt: document.getElementById("addDate").value
+            madeAt: madeAt
         };
 
         // EDIT MODE (PUT)
@@ -386,33 +482,49 @@
             })
             .then(() => {
                 editingId = null;
-
                 setCreateModeUI();
                 clearForm();
                 refreshUI();
+                // Close the offcanvas after successful update
+                const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('addOffcanvas'));
+                if (offcanvas) {
+                    offcanvas.hide();
+                }
             })
             .catch(err => alert("Error: " + err.message));
-
             return;
         }
 
         // CREATE MODE (POST)
-        fetch("/icecream", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(iceCream)
-        })
-        .then(r => {
-            if (!r.ok) return r.text().then(e => { throw new Error(e); });
-            return r.json();
-        })
-        .then(() => {
-            clearForm();
-            refreshUI();
-        })
-        .catch(err => alert("Error: " + err.message));
+        fetch("/icecream")
+            .then(r => r.json())
+            .then(list => {
+                const exists = list.some(i => i.flavor.toLowerCase() === flavor.toLowerCase());
+                if (exists) {
+                    showDuplicateFlavorError(flavor);
+                    return;
+                }
+                return fetch("/icecream", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(iceCream)
+                });
+            })
+            .then(r => {
+                if (!r) return;
+                if (!r.ok) return r.text().then(e => { throw new Error(e); });
+                return r.json();
+            })
+            .then(() => {
+                clearForm();
+                refreshUI();
+                // Close the offcanvas after successful create
+                const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('addOffcanvas'));
+                if (offcanvas) {
+                    offcanvas.hide();
+                }
+            })
+            .catch(err => alert("Error: " + err.message));
     }
 
     // Resets form
@@ -613,6 +725,30 @@
         window.location.href = "/login.html";
     }
 
+    // Displays an error message when user tries to create an ice cream that already exists
+    function showDuplicateFlavorError(flavor) {
+    const el = document.getElementById("addError");
+    el.textContent = "Flavor '" + flavor + "' already exists! Try again.";
+    el.style.display = "block";
+    }
+
+    // Shows 12 more cards if there are more than 12 ice creams currently in stock
+    function showMore() {
+    const totalItems = allIceCreams.length;
+    const displayedItems = (currentPage + 1) * ITEMS_PER_PAGE;
+
+        if (displayedItems < totalItems) {
+            currentPage++;
+            renderCards();
+        }
+    }
+
+    // Displays message indicating the user missed the field "Created at: " when creating new ice cream
+    function showDateError() {
+        new bootstrap.Modal(document.getElementById("dateErrorModal")).show();
+    }
+
+
 </script>
 
 
@@ -697,6 +833,56 @@
                 </button>
             </div>
 
+        </div>
+    </div>
+</div>
+
+<!-- SELL SUCCESS MODAL -->
+<div class="modal fade" id="sellSuccessModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Success</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="sellSuccessMessage"></div>
+            <div class="modal-footer">
+                <button class="btn btn-success" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SELL ERROR MODAL -->
+<div class="modal fade" id="sellErrorModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Error</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="sellErrorMessage"></div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MISSING CREATION DATE ERROR MODAL -->
+<div class="modal fade" id="dateErrorModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Missing Date</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                You have to choose a date for field "Made At"
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
         </div>
     </div>
 </div>
