@@ -94,10 +94,9 @@ public class IceCreamController {
 
         // Validate stock
         if (iceCream.getStockQuantityKG() < totalToSell) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Not enough stock for " + flavor
-            );
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("ERROR: Insufficient stock for the selected number of cups. Try again later.");
         }
 
         // Update stock
@@ -123,14 +122,31 @@ public class IceCreamController {
         // PUT needs two different things at the same time: @PathVariable (identifies which icecream) + @RequestBody (receives the new data).
         // We also add @Valid, so that the constraints we chose in IceCreamDTO (intermediary layer) actually work.
 
-
         IceCream existingIceCream = repository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-
 
         // Updates fields
         existingIceCream.setFlavor(dto.getFlavor());
-        existingIceCream.setStockQuantityKG(dto.getStockQuantityKG());
-        existingIceCream.setStockBuckets(dto.getStockBuckets());
+
+        // Calculate the difference in buckets and add to existing KG
+        int currentBuckets = existingIceCream.getStockBuckets();
+        int newBuckets = dto.getStockBuckets();
+        int bucketDifference = newBuckets - currentBuckets;
+
+        if (bucketDifference > 0) {
+            // Adding buckets: add 5kg per new bucket
+            double newKg = existingIceCream.getStockQuantityKG() + (bucketDifference * 5.0);
+            existingIceCream.setStockQuantityKG(newKg);
+        } else if (bucketDifference < 0) {
+            // Removing buckets: subtract 5kg per removed bucket (but don't go below 0)
+            double newKg = existingIceCream.getStockQuantityKG() + (bucketDifference * 5.0);
+            if (newKg < 0) newKg = 0;
+            existingIceCream.setStockQuantityKG(newKg);
+        } else {
+            // Same number of buckets, just update KG if changed directly
+            existingIceCream.setStockQuantityKG(dto.getStockQuantityKG());
+        }
+
+        existingIceCream.setStockBuckets(newBuckets);
         existingIceCream.setMadeAt(java.time.LocalDate.parse(dto.getMadeAt()));
 
         return repository.save(existingIceCream);

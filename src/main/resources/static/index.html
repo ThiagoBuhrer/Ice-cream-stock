@@ -95,6 +95,7 @@
     </div>
 </div>
 
+
 <script>
 
 function openSellOffcanvas() {
@@ -149,24 +150,23 @@ function sellFromOffcanvas(event) {
     fetch(`/sell?flavor=${flavor}&cups=${cups}`, {
         method: "POST"
     })
-        .then(response => {
-            if (!response.ok) {
-                return response.text().then(err => { throw new Error(err); });
-            }
-            return response.text();
-        })
-        .then(data => {
-            showSellSuccess(data);
-            refreshUI();
-            
-            const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('sellOffcanvas'));
-            if (offcanvas) {
-                offcanvas.hide();
-            }
-        })
-        .catch(err => {
-            showSellError("Error: " + err.message);
-        });
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error(text);
+            });
+        }
+        return response.text();
+    })
+    .then(data => {
+        showSellSuccess(data);
+        refreshUI();
+        const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('sellOffcanvas'));
+        if (offcanvas) offcanvas.hide();
+    })
+    .catch(err => {
+        showSellError(err.message);
+    });
 }
 
 function showSellError(message) {
@@ -189,7 +189,7 @@ function showSellSuccess(message) {
 
     <!-- PAGINATION VISUAL ONLY -->
     <div class="text-center mt-4">
-        <button class="btn btn-dark" onclick="showMore()">↓ Show more</button>
+        <button class="btn btn-dark" onclick="handleButtonClick()">↓ Show more</button>
     </div>
 
 </div>
@@ -221,44 +221,28 @@ function showSellSuccess(message) {
             });
     }
 
-    function renderCards() {
-        const cardsContainer = document.getElementById("cardsContainer");
-        cardsContainer.innerHTML = "";
-
-        const start = 0;
-        const end = Math.min((currentPage + 1) * ITEMS_PER_PAGE, allIceCreams.length);
-        const pageItems = allIceCreams.slice(start, end);
-
-        pageItems.forEach(iceCream => {
-            cardsContainer.innerHTML += `
-                <div class="col-12 col-md-4 text-center">
-                    <div class="card shadow-sm p-3">
-                        <h5>${iceCream.flavor}</h5>
-                        <p>${iceCream.stockQuantityKG} KG</p>
-                        <p>${iceCream.stockBuckets} Buckets</p>
-                    </div>
-                </div>
-            `;
-        });
-
-        updateShowMoreButton();
-    }
-
     function updateShowMoreButton() {
         const button = document.querySelector(".btn-dark");
         const totalItems = allIceCreams.length;
-        const displayedItems = Math.min((currentPage + 1) * ITEMS_PER_PAGE, totalItems);
+        const displayedItems = (currentPage + 1) * ITEMS_PER_PAGE;
 
-        if (displayedItems >= totalItems) {
-            button.disabled = true;
-            button.style.opacity = "0.5";
-            button.style.cursor = "not-allowed";
-            button.textContent = "No more items";
-        } else {
+        console.log("Total:", totalItems, "Displayed:", displayedItems, "Page:", currentPage);
+
+        if (displayedItems >= totalItems && currentPage > 0) {
+            button.textContent = "↑ Show less";
             button.disabled = false;
             button.style.opacity = "1";
             button.style.cursor = "pointer";
+        } else if (displayedItems >= totalItems && currentPage === 0) {
+            button.textContent = "No more items";
+            button.disabled = true;
+            button.style.opacity = "0.5";
+            button.style.cursor = "not-allowed";
+        } else {
             button.textContent = "↓ Show more";
+            button.disabled = false;
+            button.style.opacity = "1";
+            button.style.cursor = "pointer";
         }
     }
 
@@ -310,9 +294,49 @@ function showSellSuccess(message) {
             console.error("Error loading table:", error);
     });
 
-}
+    }
+
+    function renderCards() {
+        const cardsContainer = document.getElementById("cardsContainer");
+        cardsContainer.innerHTML = "";
+
+        const start = 0;
+        const end = Math.min((currentPage + 1) * ITEMS_PER_PAGE, allIceCreams.length);
+        const pageItems = allIceCreams.slice(start, end);
+
+        pageItems.forEach(iceCream => {
+            cardsContainer.innerHTML += `
+                <div class="col-12 col-md-4 text-center">
+                    <div class="card shadow-sm p-3">
+                        <h5>${iceCream.flavor}</h5>
+                        <p>${iceCream.stockQuantityKG} KG</p>
+                        <p>${iceCream.stockBuckets} Buckets</p>
+                    </div>
+                </div>
+            `;
+        });
+
+        updateShowMoreButton();
+    }
+
+    function handleButtonClick() {
+        const button = document.querySelector(".btn-dark");
+        const text = button.textContent;
+        
+        if (text === "↓ Show more") {
+            showMore();
+        } else if (text === "↑ Show less") {
+            resetCards();
+        }
+    }
+
+    function resetCards() {
+        currentPage = 0;
+        renderCards();
+    }
 
 </script>
+
 
 <!-- TABLE ADMIN -->
 <div class="container mt-5" id="adminSection">
@@ -734,8 +758,8 @@ function showSellSuccess(message) {
 
     // Shows 12 more cards if there are more than 12 ice creams currently in stock
     function showMore() {
-    const totalItems = allIceCreams.length;
-    const displayedItems = (currentPage + 1) * ITEMS_PER_PAGE;
+        const totalItems = allIceCreams.length;
+        const displayedItems = (currentPage + 1) * ITEMS_PER_PAGE;
 
         if (displayedItems < totalItems) {
             currentPage++;
