@@ -14,7 +14,7 @@ let allIceCreams = [];
 // Controls the current page index for the "Show More" pagination feature
 let currentPage = 0;
 // Defines the maximum number of ice cream cards displayed per page
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 9;
 // API base URL used to fetch all ice cream records from the backend
 const API_URL = "/icecream";
 

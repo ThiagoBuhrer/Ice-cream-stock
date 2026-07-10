@@ -27,12 +27,14 @@ function renderCards() {
     const pageItems = allIceCreams.slice(start, end);
 
     pageItems.forEach(iceCream => {
+        const iconName = iceCream.icon || "blank";
         cardsContainer.innerHTML += `
             <div class="col-12 col-md-4 text-center">
                 <div class="card shadow-sm p-3">
                     <h5>${iceCream.flavor}</h5>
                     <p>${iceCream.stockQuantityKG} KG</p>
                     <p>${iceCream.stockBuckets} Buckets</p>
+                    <img src="images/${iconName}.png" alt="${iconName}" class="card-icon">
                 </div>
             </div>
         `;

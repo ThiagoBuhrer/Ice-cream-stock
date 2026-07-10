@@ -9,7 +9,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+
+
 </head>
 
 <body>
@@ -18,7 +21,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
 
     <a class="navbar-brand fw-bold" href="#">
-        🍦 Ice Cream Stock
+        <img src="images/fiorini_logo.png" alt="Fiorini Logo" class="logo">
     </a>
 
     <div class="ms-auto dropdown">
@@ -48,7 +51,7 @@
 <div class="container mt-4">
     <div class="p-4 bg-light rounded">
         <h2 class="fw-bold">Stock Dashboard🍦</h2>
-        <p class="mb-0">
+        <p class="mb-0 hero-text">
             Welcome, <span id="welcomeUser"></span>
         </p>
     </div>
@@ -56,9 +59,9 @@
 
 <!-- SELL CUP BUTTON -->
 <div class="container mt-3">
-    <button class="btn btn-danger w-100 py-3 fw-bold fs-5"
+    <button class="btn btn-danger w-100 py-3 fw-bold fs-5 sell-button"
             onclick="openSellOffcanvas()">
-        🍦 SELL CUP
+        🍦 Sell Cup
     </button>
 </div>
 
@@ -170,13 +173,13 @@
         <form onsubmit="saveIceCream(event)">
             <div id="addError" class="alert alert-danger" style="display: none;"></div>
 
-            <div class="mb-3">
+            <div class="mb-4">
                 <label class="form-label">Flavor</label>
                 <input id="addFlavor" type="text" class="form-control">
             </div>
 
             <!-- Buckets -->
-            <div class="mb-3">
+            <div class="mb-4">
                 <label class="form-label">Buckets</label>
                 <input id="addBuckets"
                        type="number"
@@ -185,12 +188,29 @@
             </div>
 
             <!-- Live KG display -->
-            <div class="mb-3">
+            <div class="mb-4">
                 <small class="text-muted">
                     Stock (KG): <span id="calculatedStock">0</span>
                 </small>
             </div>
 
+            <!-- Ice Cream Icon Selection -->
+            <div class="mb-4">
+                <label class="form-label">Ice Cream Icon</label>
+                <div class="d-flex gap-2 flex-wrap" id="iconSelector">
+                    <div class="icon-option" data-icon="pink" style="background-color: #f8b4c8; width: 40px; height: 40px; border-radius: 8px; cursor: pointer; border: 2px solid transparent;"></div>
+                    <div class="icon-option" data-icon="mint" style="background-color: #a8e6cf; width: 40px; height: 40px; border-radius: 8px; cursor: pointer; border: 2px solid transparent;"></div>
+                    <div class="icon-option" data-icon="brown" style="background-color: #8d6e63; width: 40px; height: 40px; border-radius: 8px; cursor: pointer; border: 2px solid transparent;"></div>
+                    <div class="icon-option" data-icon="white" style="background-color: #f5f5f5; width: 40px; height: 40px; border-radius: 8px; cursor: pointer; border: 2px solid transparent;"></div>
+                    <div class="icon-option" data-icon="yellow" style="background-color: #ffe082; width: 40px; height: 40px; border-radius: 8px; cursor: pointer; border: 2px solid transparent;"></div>
+                    <div class="icon-option" data-icon="colorful" style="background: linear-gradient(135deg, #f8b4c8, #a8e6cf, #8d6e63, #ffe082); width: 40px; height: 40px; border-radius: 8px; cursor: pointer; border: 2px solid transparent;"></div>
+                    <div class="icon-option selected" data-icon="blank" style="background-color: transparent; width: 40px; height: 40px; border-radius: 8px; cursor: pointer; border: 2px solid #7F5DBC;"></div>
+                </div>
+                <input type="hidden" id="selectedIcon" value="blank">
+                <small class="text-muted">Click a color to select it.</small>
+            </div>
+
+            <!-- Made at - Date-->
             <div class="mb-3">
                 <label class="form-label">Made At</label>
                 <input id="addDate" type="date" class="form-control">
@@ -343,9 +363,9 @@
 <!-- FOOTER -->
 <footer class="bg-dark text-white text-center py-4 mt-5">
     <div class="container">
-        <p class="fw-bold mb-1">🍦 Ice Cream Stock</p>
-        <p class="mb-2">Sistema simples de gestão de stock de gelados</p>
-        <small class="text-muted">© 2026 Ice Cream Stock</small>
+        <p class="fw-bold mb-1">FIORINI GELATO - Ice Cream Stock</p>
+        <small class="mb-2">Simplifying daily gelato operations with real-time inventory tracking and stock visibility</small><br><br>
+        <small>© 2026 Fiorini Gelato</small>
     </div>
 </footer>
 
@@ -355,6 +375,7 @@
 <script src="js/stock-crud.js"></script>
 <script src="js/sell.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
 
 </body>
 </html>

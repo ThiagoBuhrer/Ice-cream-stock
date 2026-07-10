@@ -15,6 +15,7 @@ public class IceCream {
     private double stockQuantityKG;
     private int stockBuckets;
     private LocalDate madeAt;
+    private String icon;
     private static final double KG_PER_BUCKET = 5.0; // Indicates that 01 ice cream bucket weights 5g
     private static final double KG_PER_CUP = 0.1;
 
@@ -23,11 +24,12 @@ public class IceCream {
     }
 
     // Constructor Method
-    public IceCream(String flavor, double stockQuantityKG, int stockBuckets, LocalDate madeAt) {
+    public IceCream(String flavor, double stockQuantityKG, int stockBuckets, LocalDate madeAt, String icon) {
         this.flavor = flavor;
         this.stockQuantityKG = stockBuckets * KG_PER_BUCKET;
         this.stockBuckets = stockBuckets;
         this.madeAt = madeAt;
+        this.icon = icon != null ? icon : "blank";
     }
 
     // Access Methods
@@ -58,5 +60,10 @@ public class IceCream {
     public void setMadeAt(LocalDate madeAt) {
         this.madeAt = madeAt;
     }
-
+    public String getIcon() {
+        return icon;
+    }
+    public void setIcon(String icon) {
+        this.icon = icon;
+    }
 }

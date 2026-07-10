@@ -1,0 +1,219 @@
+/* ============================================
+   LOGIN PAGE 
+============================================ */
+
+html {
+    font-size: 16px;
+}
+
+body {
+    background-color: #7F5DBC !important;
+    font-family: 'Montserrat', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 16px;
+    margin: 0;
+}
+
+.login-logo {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    display: block;
+    margin: 0 auto 24px;
+    transition: transform 0.2s ease-in-out;
+}
+
+.login-logo:hover {
+    transform: scale(1.07);
+}
+
+.container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
+    padding-top: 40px;  
+}
+
+/* CARD DE LOGIN */
+.card {
+    background-color: #603B93 !important;
+    border: none !important;
+    border-radius: 20px !important;
+    padding: 1.5rem !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.card h3 {
+    color: #d4c4ea !important;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
+}
+
+/* LABELS */
+.form-label {
+    color: #d4c4ea !important;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* INPUTS */
+.form-control {
+    background-color: #7F5DBC !important;
+    border: 1px solid #8e6bc4 !important;
+    color: white !important;
+    border-radius: 50px !important;
+    padding: 12px 16px !important;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-control::placeholder {
+    color: #c4b0e0 !important;
+}
+
+.form-control:focus {
+    border-color: #F9655F !important;
+    box-shadow: 0 0 0 3px rgba(249, 101, 95, 0.3) !important;
+    outline: none;
+}
+
+/* BOTÃO LOGIN */
+.btn-dark {
+    background-color: #F9655F !important;
+    border: none !important;
+    color: white !important;
+    border-radius: 50px !important;
+    padding: 14px !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    transition: all 0.3s ease !important;
+    width: 100%;
+    cursor: pointer;
+    margin-top: 50px;
+}
+
+.btn-dark:hover {
+    background-color: #d94a44 !important;
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(249, 101, 95, 0.4);
+}
+
+.btn-dark:active {
+    transform: scale(0.98);
+}
+
+/* MODAL DE ERRO */
+.modal-content {
+    border-radius: 16px !important;
+    border: none !important;
+}
+
+.modal-header {
+    background-color: #F9655F !important;
+    color: white !important;
+    border-radius: 16px 16px 0 0 !important;
+    padding: 16px 20px;
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+.modal-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.modal-body {
+    padding: 20px;
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.modal-footer .btn-primary {
+    background-color: #7F5DBC !important;
+    border-color: #7F5DBC !important;
+    border-radius: 50px !important;
+    padding: 8px 28px;
+}
+
+.modal-footer .btn-primary:hover {
+    background-color: #603B93 !important;
+    border-color: #603B93 !important;
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE
+============================================ */
+
+@media (max-width: 576px) {
+    body {
+        padding: 12px;
+        align-items: flex-start;
+        padding-top: 40px;
+    }
+
+    .card {
+        padding: 1.5rem !important;
+        border-radius: 16px !important;
+    }
+
+    .card h3 {
+        font-size: 1.2rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .form-control {
+        padding: 10px 14px !important;
+        font-size: 0.95rem;
+    }
+
+    .btn-dark {
+        padding: 12px !important;
+        font-size: 0.95rem !important;
+    }
+
+    .modal-header {
+        padding: 12px 16px;
+    }
+
+    .modal-title {
+        font-size: 1rem;
+    }
+
+    .modal-body {
+        padding: 16px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .card {
+        padding: 1.2rem !important;
+    }
+
+    .card h3 {
+        font-size: 1rem;
+    }
+
+    .form-control {
+        padding: 8px 12px !important;
+        font-size: 0.9rem;
+    }
+
+    .btn-dark {
+        padding: 10px !important;
+        font-size: 0.9rem !important;
+    }
+}

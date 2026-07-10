@@ -31,7 +31,6 @@ function saveIceCream(event) {
     const kg = buckets * KG_PER_BUCKET;
     const madeAt = document.getElementById("addDate").value;
 
-    // Validates if user did not forget to enter a date o creation
     if (!madeAt) {
         showDateError();
         return;
@@ -44,7 +43,8 @@ function saveIceCream(event) {
         flavor: flavor,
         stockBuckets: buckets,
         stockQuantityKG: kg,
-        madeAt: madeAt
+        madeAt: madeAt,
+        icon: document.getElementById("selectedIcon").value || "blank"
     };
 
     // EDIT MODE (PUT)
@@ -76,6 +76,7 @@ function saveIceCream(event) {
     }
 
     // CREATE MODE (POST)
+    console.log("Sending iceCream:", iceCream);
     fetch("/icecream")
         .then(r => r.json())
         .then(list => {
@@ -113,6 +114,11 @@ function clearForm() {
     document.getElementById("addBuckets").value = "";
     document.getElementById("addDate").value = "";
     document.getElementById("calculatedStock").innerText = "0";
+
+    // Reset icon to blank
+    document.getElementById("selectedIcon").value = "blank";
+    document.querySelectorAll(".icon-option").forEach(opt => opt.classList.remove("selected"));
+    document.querySelector(".icon-option[data-icon='blank']").classList.add("selected");
 }
 
 // Resets the UI to "create mode" by changing the main action button text back to "Create"

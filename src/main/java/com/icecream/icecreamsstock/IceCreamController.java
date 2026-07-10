@@ -68,9 +68,11 @@ public class IceCreamController {
                 dto.getFlavor(),
                 dto.getStockQuantityKG(),
                 dto.getStockBuckets(),
-                java.time.LocalDate.parse(dto.getMadeAt())
+                java.time.LocalDate.parse(dto.getMadeAt()),
+                dto.getIcon()
         );
 
+        iceCream.setIcon(dto.getIcon() != null ? dto.getIcon() : "blank");
         return repository.save(iceCream);
     }
 
@@ -126,6 +128,7 @@ public class IceCreamController {
 
         // Updates fields
         existingIceCream.setFlavor(dto.getFlavor());
+        existingIceCream.setIcon(dto.getIcon());
 
         // Calculate the difference in buckets and add to existing KG
         int currentBuckets = existingIceCream.getStockBuckets();

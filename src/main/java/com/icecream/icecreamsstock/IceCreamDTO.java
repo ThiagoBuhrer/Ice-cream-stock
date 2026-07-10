@@ -22,6 +22,7 @@ public class IceCreamDTO {
     private int stockBuckets;
     @NotBlank
     private String madeAt;
+    private String icon;
 
     // @NotBlank - field cannot be blank
     // @PositiveOrZero - field has to be => 0
@@ -60,5 +61,9 @@ public class IceCreamDTO {
     public void setMadeAt(String madeAt) {
         this.madeAt = madeAt;
     }
+
+    public String getIcon() { return icon; }
+
+    public void setIcon(String icon) { this.icon = icon; }
 
 }
