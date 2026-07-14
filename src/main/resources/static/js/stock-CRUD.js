@@ -157,7 +157,7 @@ function loadTable() {
 
                             <button class="btn btn-warning btn-sm"
                                 onclick="startEditIceCream(${iceCream.id}, '${iceCream.flavor}', 
-                                ${iceCream.stockBuckets}, '${iceCream.madeAt}')">
+                                ${iceCream.stockBuckets}, '${iceCream.madeAt}', '${iceCream.icon || 'blank'}')">
                                 Edit
                             </button>
 
@@ -222,15 +222,23 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // Opens the edit form (offcanvas) and pre-fills it with the selected ice cream data
-function startEditIceCream(id, flavor, buckets, madeAt) {
+function startEditIceCream(id, flavor, buckets, madeAt, icon) {
     editingId = id;
 
     document.getElementById("addFlavor").value = flavor;
     document.getElementById("addBuckets").value = buckets;
     document.getElementById("addDate").value = madeAt;
 
-    updateStockLive();
+    const currentIcon = icon || "blank";
+    document.getElementById("selectedIcon").value = currentIcon;
+    document.querySelectorAll(".icon-option").forEach(opt => {
+        opt.classList.remove("selected");
+        if (opt.dataset.icon === currentIcon) {
+            opt.classList.add("selected");
+        }
+    });
 
+    updateStockLive();
     setEditModeUI();
 
     const offcanvas = new bootstrap.Offcanvas(
