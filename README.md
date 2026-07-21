@@ -59,6 +59,56 @@ Built with Java Spring Boot on the back end and vanilla HTML/CSS/JavaScript on t
 
 ---
 
+## Project Structure
+
+ice-cream-stock/
+├── README.md
+├── pom.xml
+├── src/
+│   └── main/
+│       ├── java/
+│       │   └── com/
+│       │       └── icecream/
+│       │           └── icecreamsstock/
+│       │               ├── IceCreamStockApplication.java
+│       │               ├── AuthController.java
+│       │               ├── IceCreamController.java
+│       │               ├── IceCream.java
+│       │               ├── IceCreamDTO.java
+│       │               ├── IceCreamRepository.java
+│       │               ├── LoginResponseDTO.java
+│       │               ├── Role.java
+│       │               ├── User.java
+│       │               ├── UserDataInitializer.java
+│       │               └── UserRepository.java
+│       └── resources/
+│           ├── application.properties
+│           └── static/
+│               ├── index.html
+│               ├── login.html
+│               ├── styles.css
+│               ├── login.css
+│               ├── images/
+│               │   ├── fiorini_logo.png
+│               │   ├── blank.png
+│               │   ├── pink.png
+│               │   ├── mint.png
+│               │   ├── brown.png
+│               │   ├── white.png
+│               │   ├── yellow.png
+│               │   └── colorful.png
+│               └── js/
+│                   ├── app.js
+│                   ├── auth.js
+│                   ├── cards.js
+│                   ├── sell.js
+│                   ├── stock-crud.js
+│                   └── ui.js
+└── screenshots/
+    └── dashboard.png
+
+---
+
 ## Getting Started
 
 ### 1. Clone the repository
