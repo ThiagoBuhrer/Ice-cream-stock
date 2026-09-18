@@ -29,7 +29,7 @@ public class IceCreamDTO {
 
 
     // Getters and Setters
-    // Spring uses these methods to convert JSON into Java (JSON Mapping)
+    // Spring uses these methods to convert JSON into Java objects (JSON Mapping) and vice versa
     public String getFlavor() {
         return flavor;
     }

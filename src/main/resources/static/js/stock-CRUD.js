@@ -22,6 +22,55 @@ function updateStockLive() {
     document.getElementById("calculatedStock").innerText = kg;
 }
 
+// Fetches ice cream data from the backend API and renders it into an HTML table (GET)
+function loadTable() {
+    fetch(API_URL)
+        .then(response => response.json())
+        .then(data => {
+
+            const tableBody = document.getElementById("tableBody");
+
+            // Clears existing table content before inserting updated rows
+            tableBody.innerHTML = "";
+
+            // Iterates over each ice cream object returned by the API
+            data.forEach(iceCream => {
+
+                // Dynamically creates a table row for each ice cream entry
+                // Delete button only works if you are logged as Manager, not as Staff. Edit button works for both roles.
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${iceCream.id ?? "-"}</td>
+                        <td>${iceCream.flavor}</td>
+                        <td>${iceCream.stockQuantityKG}</td>
+                        <td>${iceCream.stockBuckets}</td>
+                        <td>
+
+                            <button class="btn btn-warning btn-sm"
+                                onclick="startEditIceCream(${iceCream.id}, '${iceCream.flavor}', 
+                                ${iceCream.stockBuckets}, '${iceCream.madeAt}', '${iceCream.icon || 'blank'}')">
+                                Edit
+                            </button>
+
+                            ${localStorage.getItem("role") === "MANAGER" ? `
+                            <button class="btn btn-danger btn-sm deleteButton"
+                                onclick="deleteIceCream(${iceCream.id})">
+                                Delete
+                            </button>
+                            ` : ""}
+
+                        </td>
+                    </tr>
+                `;
+
+            });
+
+        })
+        .catch(error => {
+            console.error("Error loading table:", error);
+        });
+}
+
 // Sends new ice cream data to backend API (POST/PUT)
 function saveIceCream(event) {
     event.preventDefault();
@@ -129,55 +178,6 @@ function setCreateModeUI() {
 // Changes the UI to "edit mode" by updating the main action button text to "Update"
 function setEditModeUI() {
     document.querySelector("#addOffcanvas .btn-success").innerText = "Update";
-}
-
-// Fetches ice cream data from the backend API and renders it into an HTML table (READ)
-function loadTable() {
-    fetch(API_URL)
-        .then(response => response.json())
-        .then(data => {
-
-            const tableBody = document.getElementById("tableBody");
-
-            // Clears existing table content before inserting updated rows
-            tableBody.innerHTML = "";
-
-            // Iterates over each ice cream object returned by the API
-            data.forEach(iceCream => {
-
-                // Dynamically creates a table row for each ice cream entry
-                // Delete button only works if you are logged as Manager, not as Staff. Edit button works for both roles.
-                tableBody.innerHTML += `
-                    <tr>
-                        <td>${iceCream.id ?? "-"}</td>
-                        <td>${iceCream.flavor}</td>
-                        <td>${iceCream.stockQuantityKG}</td>
-                        <td>${iceCream.stockBuckets}</td>
-                        <td>
-
-                            <button class="btn btn-warning btn-sm"
-                                onclick="startEditIceCream(${iceCream.id}, '${iceCream.flavor}', 
-                                ${iceCream.stockBuckets}, '${iceCream.madeAt}', '${iceCream.icon || 'blank'}')">
-                                Edit
-                            </button>
-
-                            ${localStorage.getItem("role") === "MANAGER" ? `
-                            <button class="btn btn-danger btn-sm deleteButton"
-                                onclick="deleteIceCream(${iceCream.id})">
-                                Delete
-                            </button>
-                            ` : ""}
-
-                        </td>
-                    </tr>
-                `;
-
-            });
-
-        })
-        .catch(error => {
-            console.error("Error loading table:", error);
-        });
 }
 
 // Sends DELETE request to the backend to remove an ice cream by its ID
