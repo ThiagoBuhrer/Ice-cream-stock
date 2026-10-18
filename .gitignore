@@ -37,3 +37,11 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Secrets / SSH / Env ###
+.env
+.env.*
+*.pem
+*.key
+*.log
+.gitignore.save
