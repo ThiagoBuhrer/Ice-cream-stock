@@ -20,4 +20,7 @@ public interface IceCreamRepository extends JpaRepository<IceCream, Long> {
     // Spring reads this and automatically generates: SELECT * FROM ice_cream WHERE LOWER(flavor) = LOWER(?)
     Optional<IceCream> findByFlavorIgnoreCase(String flavor);
 
+    // Returns true if a flavor with the same name already exists (case-insensitive)
+    boolean existsByFlavorIgnoreCase(String flavor);
+
 }
