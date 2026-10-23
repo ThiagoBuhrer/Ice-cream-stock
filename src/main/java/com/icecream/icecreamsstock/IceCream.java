@@ -26,7 +26,7 @@ public class IceCream {
     // Constructor Method
     public IceCream(String flavor, double stockQuantityKG, int stockBuckets, LocalDate madeAt, String icon) {
         this.flavor = flavor;
-        this.stockQuantityKG = stockBuckets * KG_PER_BUCKET;
+        this.stockQuantityKG = stockQuantityKG;
         this.stockBuckets = stockBuckets;
         this.madeAt = madeAt;
         this.icon = icon != null ? icon : "blank";

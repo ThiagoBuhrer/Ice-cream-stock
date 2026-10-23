@@ -64,10 +64,21 @@ public class IceCreamController {
         // @RequestBody converts the JSON data from the HTTP request body into a Java object.
         // @Valid allow the constraints we chose in IceCreamDTO (intermediary layer) to actually work.
 
+        // Verifies for duplicate flavours first
+        if (repository.existsByFlavorIgnoreCase(dto.getFlavor())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Flavor already exists: " + dto.getFlavor()
+            );
+        }
+
+
+        int calculatedBuckets = (int) Math.ceil(dto.getStockQuantityKG() / 5.0);
+
         IceCream iceCream = new IceCream(
                 dto.getFlavor(),
                 dto.getStockQuantityKG(),
-                dto.getStockBuckets(),
+                calculatedBuckets,
                 java.time.LocalDate.parse(dto.getMadeAt()),
                 dto.getIcon()
         );
@@ -106,7 +117,7 @@ public class IceCreamController {
         iceCream.setStockQuantityKG(newStock);
 
         // Recalculate buckets (5kg = 1 bucket)
-        int newBuckets = (int) (newStock / 5.0);
+        int newBuckets = (int) Math.ceil(newStock / 5.0);
         iceCream.setStockBuckets(newBuckets);
 
         // Save update to DB
@@ -130,26 +141,12 @@ public class IceCreamController {
         existingIceCream.setFlavor(dto.getFlavor());
         existingIceCream.setIcon(dto.getIcon());
 
-        // Calculate the difference in buckets and add to existing KG
-        int currentBuckets = existingIceCream.getStockBuckets();
-        int newBuckets = dto.getStockBuckets();
-        int bucketDifference = newBuckets - currentBuckets;
+        // KG is the source of truth. Buckets are always derived: ceil(KG / 5).
+        double newKg = dto.getStockQuantityKG();
+        int calculatedBuckets = (int) Math.ceil(newKg / 5.0);
 
-        if (bucketDifference > 0) {
-            // Adding buckets: add 5kg per new bucket
-            double newKg = existingIceCream.getStockQuantityKG() + (bucketDifference * 5.0);
-            existingIceCream.setStockQuantityKG(newKg);
-        } else if (bucketDifference < 0) {
-            // Removing buckets: subtract 5kg per removed bucket (but don't go below 0)
-            double newKg = existingIceCream.getStockQuantityKG() + (bucketDifference * 5.0);
-            if (newKg < 0) newKg = 0;
-            existingIceCream.setStockQuantityKG(newKg);
-        } else {
-            // Same number of buckets, just update KG if changed directly
-            existingIceCream.setStockQuantityKG(dto.getStockQuantityKG());
-        }
-
-        existingIceCream.setStockBuckets(newBuckets);
+        existingIceCream.setStockQuantityKG(newKg);
+        existingIceCream.setStockBuckets(calculatedBuckets);
         existingIceCream.setMadeAt(java.time.LocalDate.parse(dto.getMadeAt()));
 
         return repository.save(existingIceCream);

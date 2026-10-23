@@ -18,8 +18,6 @@ public class IceCreamDTO {
     private String flavor;
     @PositiveOrZero
     private double stockQuantityKG;
-    @PositiveOrZero
-    private int stockBuckets;
     @NotBlank
     private String madeAt;
     private String icon;
@@ -44,14 +42,6 @@ public class IceCreamDTO {
 
     public void setStockQuantityKG(double stockQuantityKG) {
         this.stockQuantityKG = stockQuantityKG;
-    }
-
-    public int getStockBuckets() {
-        return stockBuckets;
-    }
-
-    public void setStockBuckets(int stockBuckets) {
-        this.stockBuckets = stockBuckets;
     }
 
     public String getMadeAt() {

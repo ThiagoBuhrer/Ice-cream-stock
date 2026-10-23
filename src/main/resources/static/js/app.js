@@ -5,6 +5,10 @@
 
 // Stores the ID of the ice cream currently being edited
 let editingId = null;
+// Real KG of the item being edited (preserves fractions like 14.9)
+let currentKg = 0;
+// Current bucket count of the item being edited
+let currentBuckets = 0;
 // Stores the ID of the ice cream currently being deleted
 let deleteTargetId = null;
 // Defines how many kilograms are contained in one ice cream bucket

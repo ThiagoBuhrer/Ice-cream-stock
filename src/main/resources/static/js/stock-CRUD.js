@@ -17,9 +17,17 @@ function openAddOffcanvas() {
 // Calculates Stock (KG) based on bucket input live
 function updateStockLive() {
     const buckets = parseInt(document.getElementById("addBuckets").value) || 0;
-    const kg = buckets * KG_PER_BUCKET;
 
-    document.getElementById("calculatedStock").innerText = kg;
+    let kg;
+    if (editingId !== null) {
+        const diff = buckets - currentBuckets;
+        kg = currentKg + (diff * KG_PER_BUCKET);
+        if (kg < 0) kg = 0;
+    } else {
+        kg = buckets * KG_PER_BUCKET;
+    }
+
+    document.getElementById("calculatedStock").innerText = kg.toFixed(1);
 }
 
 // Fetches ice cream data from the backend API and renders it into an HTML table (GET)
@@ -48,7 +56,8 @@ function loadTable() {
 
                             <button class="btn btn-warning btn-sm"
                                 onclick="startEditIceCream(${iceCream.id}, '${iceCream.flavor}', 
-                                ${iceCream.stockBuckets}, '${iceCream.madeAt}', '${iceCream.icon || 'blank'}')">
+                                ${iceCream.stockBuckets}, '${iceCream.madeAt}', '${iceCream.icon || 'blank'}',
+                                ${iceCream.stockQuantityKG})">
                                 Edit
                             </button>
 
@@ -77,7 +86,6 @@ function saveIceCream(event) {
 
     const flavor = document.getElementById("addFlavor").value.trim();
     const buckets = parseInt(document.getElementById("addBuckets").value) || 0;
-    const kg = buckets * KG_PER_BUCKET;
     const madeAt = document.getElementById("addDate").value;
 
     if (!madeAt) {
@@ -88,9 +96,18 @@ function saveIceCream(event) {
     document.getElementById("addError").style.display = "none";
     document.getElementById("addError").textContent = "";
 
+    // KG is calculated differently per mode and is the only stock field sent to the backend (backend derives buckets via ceil(KG / 5)).
+    let kg;
+    if (editingId !== null) {
+        const diff = buckets - currentBuckets;
+        kg = currentKg + (diff * KG_PER_BUCKET);
+        if (kg < 0) kg = 0;
+    } else {
+        kg = buckets * KG_PER_BUCKET;
+    }
+
     const iceCream = {
         flavor: flavor,
-        stockBuckets: buckets,
         stockQuantityKG: kg,
         madeAt: madeAt,
         icon: document.getElementById("selectedIcon").value || "blank"
@@ -105,22 +122,25 @@ function saveIceCream(event) {
             },
             body: JSON.stringify(iceCream)
         })
-        .then(r => {
-            if (!r.ok) return r.text().then(e => { throw new Error(e); });
-            return r.json();
-        })
-        .then(() => {
-            editingId = null;
-            setCreateModeUI();
-            clearForm();
-            refreshUI();
-            // Close the offcanvas after successful update
-            const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('addOffcanvas'));
-            if (offcanvas) {
-                offcanvas.hide();
-            }
-        })
-        .catch(err => alert("Error: " + err.message));
+            .then(r => {
+                if (!r.ok) return r.text().then(e => { throw new Error(e); });
+                return r.json();
+            })
+            .then(() => {
+                // Reset editing globals after a successful PUT
+                editingId = null;
+                currentKg = 0;
+                currentBuckets = 0;
+                setCreateModeUI();
+                clearForm();
+                refreshUI();
+                // Close the offcanvas after successful update
+                const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('addOffcanvas'));
+                if (offcanvas) {
+                    offcanvas.hide();
+                }
+            })
+            .catch(err => alert("Error: " + err.message));
         return;
     }
 
@@ -222,8 +242,11 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // Opens the edit form (offcanvas) and pre-fills it with the selected ice cream data
-function startEditIceCream(id, flavor, buckets, madeAt, icon) {
+// Receives the real stockQuantityKG to preserve fractional values (e.g. 14.9 KG)
+function startEditIceCream(id, flavor, buckets, madeAt, icon, kg) {
     editingId = id;
+    currentKg = kg;
+    currentBuckets = buckets;
 
     document.getElementById("addFlavor").value = flavor;
     document.getElementById("addBuckets").value = buckets;
